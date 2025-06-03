@@ -1,0 +1,2295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+  <title>Resolume Arena Controller</title>
+  <style>
+    /* ==================== Reset & Base ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+    .container {
+      max-width: 100vw;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ==================== Header ==================== */
+    .header {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+      padding: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .header h1 {
+      font-size: 20px;
+      text-align: center;
+      background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .connection-status {
+      text-align: center;
+      font-size: 12px;
+      padding: 5px;
+      border-radius: 20px;
+      background: #333;
+      display: inline-block;
+      width: 100%;
+    }
+    .connection-status.connected {
+      background: #00ff8830;
+      color: #00ff88;
+    }
+    
+    /* IP Configuration */
+    .ip-config {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+      padding: 10px;
+      background: #1a1a1a;
+      border-radius: 8px;
+    }
+    .ip-config label {
+      font-size: 12px;
+      color: #888;
+    }
+    .ip-config input {
+      flex: 1;
+      padding: 5px 10px;
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 12px;
+    }
+    .ip-config button {
+      padding: 5px 15px;
+      background: #00ff88;
+      border: none;
+      border-radius: 4px;
+      color: #000;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ip-config button:hover {
+      background: #00cc66;
+    }
+    .ip-config button:active {
+      transform: scale(0.95);
+    }
+
+    /* ==================== Tab Navigation ==================== */
+    .tab-nav {
+      display: flex;
+      background: #1a1a1a;
+      border-bottom: 2px solid #333;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 15px 20px;
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      min-width: 100px;
+    }
+    .tab-btn.active {
+      color: #00ff88;
+      border-bottom: 3px solid #00ff88;
+    }
+
+    /* ==================== Tab Content ==================== */
+    .tab-content {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.3s;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ==================== Custom Layer Dropdown (Clips Tab) ==================== */
+    .layer-selector {
+      position: relative;
+      margin-bottom: 15px;
+    }
+    .dropdown-btn {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .dropdown-btn:hover {
+      background: #222;
+      border-color: #444;
+    }
+    .dropdown-btn:focus {
+      outline: none;
+      border-color: #00ff88;
+    }
+    .dropdown-btn .chevron {
+      width: 10px;
+      height: 6px;
+      margin-left: 8px;
+      color: #888;
+      transition: transform 0.2s;
+    }
+    .dropdown-btn.open .chevron {
+      transform: rotate(-180deg);
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      margin-top: 4px;
+      z-index: 100;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+    .dropdown-menu .dropdown-item {
+      padding: 10px 12px;
+      font-size: 14px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .dropdown-menu .dropdown-item:hover {
+      background: rgba(0, 255, 136, 0.1);
+    }
+    .dropdown-menu .dropdown-item.selected {
+      background: rgba(0, 255, 136, 0.2);
+      color: #00ff88;
+    }
+
+    /* ==================== Clip Grid ==================== */
+    .clip-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .clip {
+      position: relative;
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+      border: 2px solid #333;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .clip.connected {
+      background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+      color: #000;
+      border-color: #00ff88;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+    }
+    .clip.selected {
+      border-color: #00ff88;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+    }
+    .clip-thumbnail {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.3;
+    }
+    .clip .click-area {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 20px);
+      cursor: pointer;
+      z-index: 1;
+    }
+    .clip-select-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(26, 26, 26, 0.9);
+      color: #fff;
+      font-size: 12px;
+      text-align: center;
+      cursor: pointer;
+      z-index: 2;
+      border-top: 1px solid #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      height: 20px;
+      line-height: 20px;
+    }
+
+    /* ==================== Clip Details Panel ==================== */
+    .clip-details {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+    .clip-details h2 {
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #00ff88;
+    }
+    
+    .clip-details h3 {
+      font-size: 14px;
+      margin: 15px 0 10px 0;
+      color: #00ccff;
+    }
+
+    /* ==================== Parameter Sections ==================== */
+    .param-section {
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #0e0e0e;
+      border-radius: 8px;
+      border: 1px solid #222;
+    }
+    
+    .param-section p {
+      margin: 10px 0;
+      line-height: 1.4;
+    }
+    
+    .warning-message {
+      background: rgba(255, 170, 0, 0.1);
+      border: 1px solid #ffaa00;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    
+    .warning-message h4 {
+      color: #ffaa00;
+      margin-bottom: 5px;
+    }
+    
+    .warning-message p {
+      font-size: 12px;
+      color: #ccc;
+      margin: 0;
+    }
+
+    /* Clip Parameters */
+    .param-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+    .param-item {
+      background: #0e0e0e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .param-name {
+      font-size: 14px;
+      margin-bottom: 5px;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+    }
+    .slider-container {
+      margin: 10px 0;
+    }
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #ccc;
+      margin-bottom: 5px;
+    }
+    .slider {
+      width: 100%;
+      height: 40px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #333;
+      border-radius: 20px;
+      outline: none;
+      cursor: pointer;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #00ff88;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #00ff88;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    /* Effects List */
+    .effect-item {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .effect-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .effect-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #00ff88;
+    }
+    
+    .effect-params {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #333;
+    }
+
+    /* Scrollable List for Effects & Sources */
+    .list-scroll {
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: #0e0e0e;
+    }
+    .list-item {
+      padding: 8px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #fff;
+      cursor: pointer;
+      background: none;
+    }
+    .list-item:last-child {
+      border-bottom: none;
+    }
+    .list-item:hover {
+      background: rgba(0, 255, 136, 0.1);
+      color: #fff;
+    }
+
+    /* ==================== Layer List (Layers Tab) ==================== */
+    .layer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .layer-item {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 15px;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .layer-item.selected {
+      border-color: #00ff88;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    }
+    .layer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .layer-name {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .layer-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* ==================== Buttons ==================== */
+    .btn {
+      padding: 8px 16px;
+      background: #333;
+      border: none;
+      border-radius: 20px;
+      color: #fff;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:active {
+      transform: scale(0.95);
+    }
+    .btn.active {
+      background: #00ff88;
+      color: #000;
+    }
+    .btn-bypass {
+      background: #ff4444;
+    }
+    .btn-bypass.active {
+      background: #ff6666;
+    }
+    .btn-solo {
+      background: #ffaa00;
+    }
+    .btn-solo.active {
+      background: #ffcc33;
+    }
+    .btn-remove {
+      background: #ff4444;
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    /* ==================== Column Controls ==================== */
+    .column-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .column-btn {
+      aspect-ratio: 1/2;
+      background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+      border: 2px solid #444;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .column-btn span.column-number {
+      font-size: 32px;
+      margin-bottom: 5px;
+    }
+    .column-btn span.column-name {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    .column-btn:active {
+      transform: scale(0.95);
+    }
+    .column-btn.connected {
+      background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+      color: #000;
+      border-color: #00ff88;
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+    }
+
+    /* ==================== Composition Controls ==================== */
+    .composition-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .control-group {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 15px;
+    }
+    .control-group h3 {
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #00ff88;
+    }
+
+    /* ==================== Loading Overlay ==================== */
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      display: none;
+    }
+    .loading.active {
+      display: flex;
+    }
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid #333;
+      border-top-color: #00ff88;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ==================== Help Text ==================== */
+    .help-text {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      font-size: 11px;
+      color: #666;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 5px 10px;
+      border-radius: 4px;
+      border: 1px solid #333;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      .clip-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .ip-config {
+        flex-wrap: wrap;
+      }
+      .ip-config label {
+        width: 100%;
+        margin-bottom: 5px;
+      }
+      .ip-config input {
+        flex: 1;
+        min-width: 0;
+      }
+      .ip-config button {
+        flex: 0 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Resolume Arena Controller</h1>
+      <div class="connection-status" id="connectionStatus">
+        Not connected
+      </div>
+      <div class="ip-config">
+        <label for="ipAddress">IP Address:</label>
+        <input type="text" id="ipAddress" placeholder="192.168.12.146:8080" value="192.168.12.146:8080">
+        <button onclick="updateConnection()">Connect</button>
+      </div>
+    </div>
+
+    <nav class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('clips')">Clips</button>
+      <button class="tab-btn" onclick="switchTab('layers')">Layers</button>
+      <button class="tab-btn" onclick="switchTab('columns')">Columns</button>
+      <button class="tab-btn" onclick="switchTab('composition')">Comp</button>
+    </nav>
+
+    <!-- ==================== CLIPS TAB ==================== -->
+    <div class="tab-content active" id="clips-tab">
+      <div class="layer-selector">
+        <button id="layerDropdownBtn" class="dropdown-btn">
+          <span id="layerDropdownLabel">Select Layer…</span>
+          <svg class="chevron" viewBox="0 0 10 6">
+            <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div id="layerDropdownMenu" class="dropdown-menu" style="display: none;"></div>
+      </div>
+
+      <div class="clip-grid" id="clipGrid"></div>
+
+      <div id="clipDetails" class="clip-details" style="display: none;">
+        <h2>Clip Details</h2>
+        <div id="clipInfo"></div>
+      </div>
+    </div>
+
+    <!-- ==================== LAYERS TAB ==================== -->
+    <div class="tab-content" id="layers-tab">
+      <div id="layerList" class="layer-list"></div>
+      <div id="layerDetails" class="clip-details" style="display: none;">
+        <h2>Layer Details</h2>
+        <div id="layerInfo"></div>
+      </div>
+    </div>
+
+    <!-- ==================== COLUMNS TAB ==================== -->
+    <div class="tab-content" id="columns-tab">
+      <div id="columnGrid" class="column-grid"></div>
+    </div>
+
+    <!-- ==================== COMPOSITION TAB ==================== -->
+    <div class="tab-content" id="composition-tab">
+      <div class="composition-controls">
+        <div id="compositionInfo"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="loading-spinner"></div>
+  </div>
+  
+  <div class="help-text">
+    💡 Press F12 to open console for debug info
+  </div>
+
+  <script>
+    let API_BASE = 'http://192.168.12.146:8080/api/v1';
+    let composition = null;
+    let currentLayer = null;
+    let selectedClip = null;
+    let selectedLayer = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('%c🎬 Resolume Arena Controller Started', 'color: #00ff88; font-size: 16px; font-weight: bold;');
+      console.log('%cIf you experience issues adding effects or sources:', 'color: #ffaa00; font-size: 12px;');
+      console.log('%c1. Check the console output for effect/source structure', 'color: #aaa; font-size: 12px;');
+      console.log('%c2. Look for "Trying effect URI:" messages to see what format is being sent', 'color: #aaa; font-size: 12px;');
+      console.log('%c3. Make sure composition is not locked in Resolume', 'color: #aaa; font-size: 12px;');
+      console.log('%c4. Ensure clips have content loaded before adding effects', 'color: #aaa; font-size: 12px;');
+      
+      // Try to connect with default IP
+      await updateConnection();
+      setupEventHandlers();
+      setInterval(refreshData, 5000);
+    });
+
+    // ==================== CONNECTION MANAGEMENT ====================
+    async function updateConnection() {
+      const ipInput = document.getElementById('ipAddress');
+      const ipAddress = ipInput.value.trim();
+      
+      if (!ipAddress) {
+        alert('Please enter an IP address');
+        return;
+      }
+      
+      // Update API base URL
+      API_BASE = `http://${ipAddress}/api/v1`;
+      
+      // Update status
+      const status = document.getElementById('connectionStatus');
+      status.textContent = `Connecting to ${ipAddress}...`;
+      status.classList.remove('connected');
+      
+      // Check connection
+      const connected = await checkConnection();
+      
+      if (connected) {
+        // Load composition if connected
+        await loadComposition();
+      }
+    }
+
+    async function checkConnection() {
+      try {
+        const response = await fetch(`${API_BASE}/product`);
+        if (response.ok) {
+          const status = document.getElementById('connectionStatus');
+          const ipAddress = document.getElementById('ipAddress').value;
+          status.textContent = `Connected to Resolume Arena at ${ipAddress}`;
+          status.classList.add('connected');
+          return true;
+        }
+      } catch (err) {
+        const status = document.getElementById('connectionStatus');
+        status.textContent = 'Connection failed - check IP address';
+        status.classList.remove('connected');
+        console.error('Connection error:', err);
+        
+        // Clear existing data when disconnected
+        clearInterface();
+      }
+      return false;
+    }
+    
+    function clearInterface() {
+      // Clear all tabs
+      document.getElementById('clipGrid').innerHTML = '';
+      document.getElementById('clipDetails').style.display = 'none';
+      document.getElementById('layerList').innerHTML = '';
+      document.getElementById('layerDetails').style.display = 'none';
+      document.getElementById('columnGrid').innerHTML = '';
+      document.getElementById('compositionInfo').innerHTML = '';
+      
+      // Reset selections
+      currentLayer = null;
+      selectedClip = null;
+      selectedLayer = null;
+      composition = null;
+      
+      // Reset layer dropdown
+      document.getElementById('layerDropdownLabel').textContent = 'Select Layer…';
+      document.getElementById('layerDropdownMenu').innerHTML = '';
+    }
+
+    // ==================== LOAD FULL COMPOSITION ====================
+    async function loadComposition() {
+      const status = document.getElementById('connectionStatus');
+      if (!status.classList.contains('connected')) {
+        console.log('Not connected, skipping composition load');
+        return;
+      }
+      
+      showLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/composition`);
+        if (!res.ok) {
+          throw new Error(`Failed to load composition: ${res.status}`);
+        }
+        composition = await res.json();
+
+        // Populate custom layer dropdown
+        populateLayerDropdown();
+
+        // Render Layers tab
+        loadLayers();
+
+        // Render Columns tab
+        loadColumns();
+
+        // Initialize Composition controls & parameters
+        updateCompositionControls();
+      } catch (err) {
+        console.error('Failed to load composition:', err);
+        status.textContent = 'Connection lost';
+        status.classList.remove('connected');
+      }
+      showLoading(false);
+    }
+
+    // ==================== CUSTOM LAYER DROPDOWN ====================
+    function populateLayerDropdown() {
+      const menu = document.getElementById('layerDropdownMenu');
+      menu.innerHTML = '';
+      if (!composition || !Array.isArray(composition.layers)) {
+        const div = document.createElement('div');
+        div.className = 'dropdown-item';
+        div.textContent = 'No layers available';
+        menu.appendChild(div);
+        return;
+      }
+      composition.layers.forEach((layer, idx) => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        let layerName = layer.name.value || `Layer ${idx + 1}`;
+        item.textContent = layerName;
+        item.dataset.layer = idx + 1;
+        item.addEventListener('click', () => {
+          closeLayerDropdown();
+          document.getElementById('layerDropdownLabel').textContent = layerName;
+          currentLayer = idx + 1;
+          loadClips();
+        });
+        menu.appendChild(item);
+      });
+    }
+    
+    function openLayerDropdown() {
+      document.getElementById('layerDropdownMenu').style.display = 'block';
+      document.getElementById('layerDropdownBtn').classList.add('open');
+    }
+    
+    function closeLayerDropdown() {
+      document.getElementById('layerDropdownMenu').style.display = 'none';
+      document.getElementById('layerDropdownBtn').classList.remove('open');
+    }
+    
+    document.getElementById('layerDropdownBtn').addEventListener('click', (e) => {
+      const menu = document.getElementById('layerDropdownMenu');
+      if (menu.style.display === 'block') {
+        closeLayerDropdown();
+      } else {
+        populateLayerDropdown();
+        openLayerDropdown();
+      }
+    });
+    
+    document.addEventListener('click', (e) => {
+      const btn = document.getElementById('layerDropdownBtn');
+      const menu = document.getElementById('layerDropdownMenu');
+      if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        closeLayerDropdown();
+      }
+    });
+
+    // ==================== LOAD CLIPS FOR SELECTED LAYER ====================
+    async function loadClips() {
+      if (!currentLayer) return;
+      selectedClip = null;
+      hideClipDetails();
+      const clipGrid = document.getElementById('clipGrid');
+      clipGrid.innerHTML = '';
+      try {
+        const res = await fetch(`${API_BASE}/composition/layers/${currentLayer}`);
+        if (!res.ok) {
+          console.error(`Failed to fetch layer ${currentLayer}: status ${res.status}`);
+          return;
+        }
+        const layerData = await res.json();
+        layerData.clips.forEach((clip, idx) => {
+          const el = createClipElement(clip, idx + 1);
+          clipGrid.appendChild(el);
+        });
+      } catch (err) {
+        console.error('Failed to load clips:', err);
+      }
+    }
+
+    function createClipElement(clip, index) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `clip ${clip.connected.value === 'Connected' ? 'connected' : ''}`;
+      wrapper.id = `clip-${index}`;
+
+      const thumb = document.createElement('img');
+      thumb.className = 'clip-thumbnail';
+      thumb.src = `${API_BASE}/composition/layers/${currentLayer}/clips/${index}/thumbnail`;
+      thumb.onerror = function () {
+        this.style.display = 'none';
+      };
+      wrapper.appendChild(thumb);
+
+      const clickArea = document.createElement('div');
+      clickArea.className = 'click-area';
+      clickArea.addEventListener('click', () => {
+        triggerClip(index);
+      });
+      wrapper.appendChild(clickArea);
+
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'clip-select-label';
+      labelDiv.textContent = clip.name.value || `Clip ${index}`;
+      labelDiv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectClip(index);
+      });
+      wrapper.appendChild(labelDiv);
+
+      return wrapper;
+    }
+
+    async function selectClip(clipIndex) {
+      selectedClip = clipIndex;
+      document.querySelectorAll('.clip').forEach((c) =>
+        c.id === `clip-${clipIndex}` ? c.classList.add('selected') : c.classList.remove('selected')
+      );
+      try {
+        await fetch(
+          `${API_BASE}/composition/layers/${currentLayer}/clips/${clipIndex}/select`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+          }
+        );
+      } catch (err) {
+        console.error(`Failed to select clip ${clipIndex}:`, err);
+      }
+      await loadClipDetails(clipIndex);
+      document.getElementById('clipDetails').style.display = 'block';
+    }
+
+    function hideClipDetails() {
+      document.getElementById('clipDetails').style.display = 'none';
+      document.getElementById('clipInfo').innerHTML = '';
+      document.querySelectorAll('.clip').forEach((c) => c.classList.remove('selected'));
+      selectedClip = null;
+    }
+
+    async function loadClipDetails(clipIndex) {
+      if (!currentLayer || !clipIndex) return;
+
+      let clipObj = null;
+      try {
+        const resLayer = await fetch(`${API_BASE}/composition/layers/${currentLayer}`);
+        if (resLayer.ok) {
+          const layerData = await resLayer.json();
+          clipObj = layerData.clips[clipIndex - 1];
+        } else {
+          console.warn(`Cannot retrieve parameters: layer ${currentLayer} returned status ${resLayer.status}`);
+        }
+      } catch (err) {
+        console.error('Failed to retrieve clip object:', err);
+      }
+
+      const clipInfo = document.getElementById('clipInfo');
+      clipInfo.innerHTML = '';
+
+      if (clipObj) {
+        // Create sections for different parameter groups
+        const sections = {
+          'Clip Parameters': {},
+          'Dashboard': clipObj.dashboard || {},
+          'Transport': clipObj.transport || {},
+          'Video': clipObj.video || {},
+          'Audio': clipObj.audio || {}
+        };
+
+        // Extract main clip parameters
+        Object.entries(clipObj).forEach(([key, value]) => {
+          if (value && typeof value === 'object' && value.value !== undefined && 
+              !['dashboard', 'transport', 'video', 'audio', 'thumbnail'].includes(key)) {
+            sections['Clip Parameters'][key] = value;
+          }
+        });
+
+        // Render each section
+        Object.entries(sections).forEach(([sectionName, params]) => {
+          if (params && Object.keys(params).length > 0) {
+            const section = createParameterSection(sectionName, params, 
+              (paramName, value) => updateClipParameter(clipIndex, paramName, value));
+            clipInfo.appendChild(section);
+          }
+        });
+
+        // Add effects sections
+        if (clipObj.video && clipObj.video.effects && clipObj.video.effects.length > 0) {
+          const effectsSection = document.createElement('div');
+          effectsSection.className = 'param-section';
+          effectsSection.innerHTML = '<h4>Video Effects</h4>';
+          
+          clipObj.video.effects.forEach((effect, idx) => {
+            const effectEl = createEffectElement(effect, idx, 'video', 
+              () => removeClipEffect(clipIndex, 'video', idx));
+            effectsSection.appendChild(effectEl);
+          });
+          
+          clipInfo.appendChild(effectsSection);
+        }
+
+        // Available effects and sources
+        const listsSection = document.createElement('div');
+        listsSection.className = 'param-section';
+        
+        // Check if clip has content
+        const hasContent = clipObj.video && (clipObj.video.fileinfo || clipObj.video.description);
+        
+        if (hasContent) {
+          listsSection.innerHTML = `
+            <h4>Available Effects</h4>
+            <div id="availableEffects" class="list-scroll"></div>
+            <h4 style="margin-top: 15px;">Available Sources</h4>
+            <div id="availableSources" class="list-scroll"></div>
+          `;
+        } else {
+          listsSection.innerHTML = `
+            <div class="warning-message">
+              <h4>⚠️ No content loaded</h4>
+              <p>Load a source first before adding effects</p>
+            </div>
+            <h4>Available Sources</h4>
+            <div id="availableSources" class="list-scroll"></div>
+          `;
+        }
+        
+        clipInfo.appendChild(listsSection);
+
+        if (hasContent) {
+          await loadAvailableEffects();
+        }
+        await loadAvailableSources();
+      }
+    }
+
+    async function updateClipParameter(clipIndex, paramPath, value) {
+      const updateBody = {};
+      const pathParts = paramPath.split('.');
+      let current = updateBody;
+      
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        current[pathParts[i]] = {};
+        current = current[pathParts[i]];
+      }
+      current[pathParts[pathParts.length - 1]] = { value: value };
+
+      try {
+        await fetch(
+          `${API_BASE}/composition/layers/${currentLayer}/clips/${clipIndex}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateBody),
+          }
+        );
+      } catch (err) {
+        console.error(`Failed to update clip param ${paramPath}:`, err);
+      }
+    }
+
+    async function triggerClip(clipIndex) {
+      if (!currentLayer || !clipIndex) return;
+      try {
+        await fetch(
+          `${API_BASE}/composition/layers/${currentLayer}/clips/${clipIndex}/connect`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+        setTimeout(() => loadClips(), 100);
+      } catch (err) {
+        console.error('Failed to trigger clip:', err);
+      }
+    }
+
+    async function loadAvailableEffects() {
+      const container = document.getElementById('availableEffects');
+      container.innerHTML = '';
+      if (!currentLayer) {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.textContent = 'Select a layer first.';
+        container.appendChild(div);
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/effects`);
+        if (!res.ok) {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.textContent = 'No effects available.';
+          container.appendChild(div);
+          return;
+        }
+        const data = await res.json();
+        console.log('Effects API response structure:', data); // Debug log
+        const effects = Array.isArray(data.video) ? data.video : [];
+        if (effects.length === 0) {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.textContent = 'No effects available.';
+          container.appendChild(div);
+          return;
+        }
+        if (effects.length > 0) {
+          console.log('Example effect structure:', effects[0]); // Debug log
+          console.log('Effect has idstring:', effects[0].idstring, 'and name:', effects[0].name);
+        }
+        effects.forEach((eff) => {
+          const item = document.createElement('div');
+          item.className = 'list-item';
+          item.textContent = eff.name || eff.idstring;
+          item.addEventListener('click', async () => {
+            if (selectedClip) {
+              await addEffectToClip(eff.idstring);
+              await loadClips();
+              await loadClipDetails(selectedClip);
+            }
+          });
+          container.appendChild(item);
+        });
+      } catch (err) {
+        console.error('Failed to load available effects:', err);
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.textContent = 'No effects available.';
+        container.appendChild(div);
+      }
+    }
+
+    async function addEffectToClip(effectId) {
+      if (!currentLayer || !selectedClip) return;
+      
+      try {
+        // First check if the clip has content
+        const resLayer = await fetch(`${API_BASE}/composition/layers/${currentLayer}`);
+        if (resLayer.ok) {
+          const layerData = await resLayer.json();
+          const clipObj = layerData.clips[selectedClip - 1];
+          
+          if (!clipObj.video || (!clipObj.video.fileinfo && !clipObj.video.description)) {
+            alert('Please load a source into this clip before adding effects');
+            return;
+          }
+        }
+        
+        // Try different URI formats
+        let effectURI = `effect:///video/${effectId}`;
+        console.log('Trying effect URI:', effectURI);
+        
+        let response = await fetch(
+          `${API_BASE}/composition/layers/${currentLayer}/clips/${selectedClip}/effects/video/add`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: effectURI,
+          }
+        );
+        
+        // If first format fails with 400, try without the "video" part
+        if (response.status === 400 || response.status === 404) {
+          effectURI = `effect:///${effectId}`;
+          console.log('Trying alternative effect URI:', effectURI);
+          
+          response = await fetch(
+            `${API_BASE}/composition/layers/${currentLayer}/clips/${selectedClip}/effects/video/add`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: effectURI,
+            }
+          );
+        }
+        
+        // If still failing, look up the effect and try different identifiers
+        if ((response.status === 400 || response.status === 404) && !effectId.includes('-')) {
+          // Look up the original effect object to get alternative identifiers
+          const effectsRes = await fetch(`${API_BASE}/effects`);
+          if (effectsRes.ok) {
+            const effectsData = await effectsRes.json();
+            const allEffects = effectsData.video || [];
+            const originalEffect = allEffects.find(e => e.name === effectId || e.idstring === effectId);
+            
+            if (originalEffect) {
+              // Try with idstring if we were using name
+              if (originalEffect.idstring && effectId === originalEffect.name) {
+                effectURI = `effect:///video/${originalEffect.idstring}`;
+                console.log('Trying with idstring:', effectURI);
+                
+                response = await fetch(
+                  `${API_BASE}/composition/layers/${currentLayer}/clips/${selectedClip}/effects/video/add`,
+                  {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: effectURI,
+                  }
+                );
+              }
+              // Try with name if we were using idstring
+              else if (originalEffect.name && effectId === originalEffect.idstring) {
+                effectURI = `effect:///video/${originalEffect.name}`;
+                console.log('Trying with name:', effectURI);
+                
+                response = await fetch(
+                  `${API_BASE}/composition/layers/${currentLayer}/clips/${selectedClip}/effects/video/add`,
+                  {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: effectURI,
+                  }
+                );
+              }
+            }
+          }
+        }
+        
+        if (!response.ok) {
+          // Try to get error message from response body
+          let errorMessage = '';
+          try {
+            const errorText = await response.text();
+            if (errorText) {
+              errorMessage = `\nServer message: ${errorText}`;
+            }
+          } catch (e) {
+            // Ignore if can't read response body
+          }
+          
+          if (response.status === 412) {
+            console.error('Cannot add effect: Composition may be locked or clip is not ready' + errorMessage);
+            alert('Cannot add effect: Composition may be locked.\n\nPlease check:\n1. The composition is not locked in Resolume\n2. The clip has content loaded\n3. Wait a moment if Resolume is processing\n\nCheck browser console (F12) for debug info' + errorMessage);
+          } else if (response.status === 400) {
+            console.error('Invalid effect specification' + errorMessage);
+            alert('Invalid effect specification - this effect may not be compatible with clips\n\nCheck browser console (F12) for debug info' + errorMessage);
+          } else {
+            console.error(`Failed to add effect: ${response.status} ${response.statusText}` + errorMessage);
+            alert(`Failed to add effect: ${response.status} ${response.statusText}\n\nCheck browser console (F12) for debug info` + errorMessage);
+          }
+          return;
+        }
+        
+        // Success!
+        console.log('%c✅ Effect added successfully!', 'color: #00ff88; font-weight: bold;');
+        console.log('Effect URI that worked:', effectURI);
+        
+        // Refresh the clip details after successful addition
+        await loadClips();
+        await loadClipDetails(selectedClip);
+      } catch (err) {
+        console.error('Failed to add effect to clip:', err);
+        alert('Failed to add effect. Check console for details.');
+      }
+    }
+
+    async function removeClipEffect(clipIndex, effectType, effectIndex) {
+      if (!currentLayer) return;
+      try {
+        await fetch(
+          `${API_BASE}/composition/layers/${currentLayer}/clips/${clipIndex}/effects/${effectType}/${effectIndex + 1}`,
+          {
+            method: 'DELETE'
+          }
+        );
+        await loadClipDetails(clipIndex);
+      } catch (err) {
+        console.error('Failed to remove effect:', err);
+      }
+    }
+
+    async function loadAvailableSources() {
+      const container = document.getElementById('availableSources');
+      container.innerHTML = '';
+      if (!selectedClip || !currentLayer) {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.textContent = 'Select a clip first.';
+        container.appendChild(div);
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/sources`);
+        if (!res.ok) {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.textContent = 'No sources available.';
+          container.appendChild(div);
+          return;
+        }
+        const data = await res.json();
+        console.log('Sources API response structure:', data); // Debug log
+        const sources = Array.isArray(data.video) ? data.video : [];
+        if (sources.length === 0) {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.textContent = 'No sources available.';
+          container.appendChild(div);
+          return;
+        }
+        if (sources.length > 0) {
+          console.log('Example source structure:', sources[0]); // Debug log
+          console.log('Source has idstring:', sources[0].idstring, 'and name:', sources[0].name);
+        }
+        sources.forEach((src) => {
+          const item = document.createElement('div');
+          item.className = 'list-item';
+          item.textContent = src.name || src.idstring;
+          item.addEventListener('click', async () => {
+            // Log the source object to understand its structure
+            console.log('Source object:', src);
+            
+            // Determine which identifier to use
+            let sourceIdentifier;
+            
+            // If idstring looks like a UUID (contains dashes), use the name
+            if (src.idstring && src.idstring.includes('-')) {
+              sourceIdentifier = src.name;
+              console.log('Using source name (UUID detected):', sourceIdentifier);
+            } else {
+              // Otherwise prefer idstring over name
+              sourceIdentifier = src.idstring || src.name;
+              console.log('Using source idstring:', sourceIdentifier);
+            }
+            
+            console.log('Assigning source:', sourceIdentifier, 'to clip', selectedClip);
+            await assignSourceToClip(sourceIdentifier);
+            await loadClips();
+            await loadClipDetails(selectedClip);
+          });
+          container.appendChild(item);
+          
+          // Add presets if available
+          if (src.presets && src.presets.length > 0) {
+            src.presets.forEach((preset) => {
+              const presetItem = document.createElement('div');
+              presetItem.className = 'list-item';
+              presetItem.textContent = `  → ${preset.name}`;
+              presetItem.style.paddingLeft = '20px';
+              presetItem.style.fontSize = '11px';
+              presetItem.style.color = '#aaa';
+              presetItem.addEventListener('click', async () => {
+                // Determine which identifier to use for the base source
+                let sourceIdentifier;
+                if (src.idstring && src.idstring.includes('-')) {
+                  sourceIdentifier = src.name;
+                } else {
+                  sourceIdentifier = src.idstring || src.name;
+                }
+                
+                // Try using preset ID first, fall back to name
+                const presetIdentifier = preset.id || preset.name;
+                const sourceWithPreset = `${sourceIdentifier}/${presetIdentifier}`;
+                console.log('Assigning source with preset:', sourceWithPreset, 'to clip', selectedClip);
+                await assignSourceToClip(sourceWithPreset);
+                await loadClips();
+                await loadClipDetails(selectedClip);
+              });
+              container.appendChild(presetItem);
+            });
+          }
+        });
+      } catch (err) {
+        console.error('Failed to load available sources:', err);
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.textContent = 'No sources available.';
+        container.appendChild(div);
+      }
+    }
+
+    async function assignSourceToClip(sourceId) {
+      if (!currentLayer || !selectedClip) return;
+      try {
+        const sourceURI = `source:///video/${sourceId}`;
+        console.log('Sending source URI:', sourceURI);
+        
+        const response = await fetch(
+          `${API_BASE}/composition/layers/${currentLayer}/clips/${selectedClip}/open`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: sourceURI,
+          }
+        );
+        
+        if (!response.ok) {
+          // Try to get error message from response body
+          let errorMessage = '';
+          try {
+            const errorText = await response.text();
+            if (errorText) {
+              errorMessage = `\nServer message: ${errorText}`;
+            }
+          } catch (e) {
+            // Ignore if can't read response body
+          }
+          
+          if (response.status === 412) {
+            console.error('Cannot assign source: Composition may be locked or clip is not ready' + errorMessage);
+            alert('Cannot assign source: Make sure the composition is not locked and try again' + errorMessage);
+          } else {
+            console.error(`Failed to assign source: ${response.status} ${response.statusText}` + errorMessage);
+            alert(`Failed to assign source: ${response.status} ${response.statusText}` + errorMessage);
+          }
+          return;
+        }
+        
+        // Success!
+        console.log('%c✅ Source assigned successfully!', 'color: #00ff88; font-weight: bold;');
+        console.log('Source URI:', sourceURI);
+        
+        // Refresh after successful assignment
+        await loadClips();
+        await loadClipDetails(selectedClip);
+      } catch (err) {
+        console.error('Failed to assign source to clip:', err);
+      }
+    }
+
+    // ==================== LAYERS TAB ====================
+    function loadLayers() {
+      const layerList = document.getElementById('layerList');
+      layerList.innerHTML = '';
+      composition.layers.forEach((layer, idx) => {
+        const layerEl = createLayerElement(layer, idx + 1);
+        layerList.appendChild(layerEl);
+      });
+    }
+
+    function createLayerElement(layer, index) {
+      const div = document.createElement('div');
+      div.className = `layer-item ${layer.selected.value ? 'selected' : ''}`;
+      div.id = `layer-${index}`;
+      
+      const layerName = layer.name.value || `Layer ${index}`;
+      
+      div.innerHTML = `
+        <div class="layer-header">
+          <div class="layer-name">${layerName}</div>
+          <div class="layer-controls">
+            <button class="btn btn-bypass ${layer.bypassed.value ? 'active' : ''}">Bypass</button>
+            <button class="btn btn-solo ${layer.solo.value ? 'active' : ''}">Solo</button>
+          </div>
+        </div>
+        <div class="slider-container">
+          <div class="slider-label">
+            <span>Opacity</span>
+            <span>${Math.round((layer.video?.opacity?.value || 1) * 100)}%</span>
+          </div>
+          <input
+            type="range"
+            class="slider"
+            min="0"
+            max="100"
+            value="${(layer.video?.opacity?.value || 1) * 100}"
+          />
+        </div>
+        <div class="slider-container">
+          <div class="slider-label">
+            <span>Volume</span>
+            <span>${Math.round((layer.master?.value || 1) * 100)}%</span>
+          </div>
+          <input
+            type="range"
+            class="slider"
+            min="0"
+            max="100"
+            value="${(layer.master?.value || 1) * 100}"
+          />
+        </div>
+      `;
+
+      const bypassBtn = div.querySelector('.btn-bypass');
+      bypassBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await toggleLayerBypass(index);
+      });
+      
+      const soloBtn = div.querySelector('.btn-solo');
+      soloBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await toggleLayerSolo(index);
+      });
+
+      const opacitySlider = div.querySelectorAll('.slider')[0];
+      const opacityLabel = div.querySelectorAll('.slider-label span')[1];
+      opacitySlider.oninput = async function () {
+        opacityLabel.textContent = `${this.value}%`;
+        await updateLayerOpacity(index, this.value);
+      };
+      
+      const volumeSlider = div.querySelectorAll('.slider')[1];
+      const volumeLabel = div.querySelectorAll('.slider-label span')[3];
+      volumeSlider.oninput = async function () {
+        volumeLabel.textContent = `${this.value}%`;
+        await updateLayerVolume(index, this.value);
+      };
+
+      div.addEventListener('click', async (e) => {
+        if (
+          e.target.tagName.toLowerCase() === 'button' ||
+          e.target.tagName.toLowerCase() === 'input'
+        ) {
+          return;
+        }
+        await selectLayer(index);
+      });
+
+      return div;
+    }
+
+    async function toggleLayerBypass(layerIndex) {
+      try {
+        const layer = composition.layers[layerIndex - 1];
+        await fetch(
+          `${API_BASE}/composition/layers/${layerIndex}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              bypassed: { value: !layer.bypassed.value },
+            }),
+          }
+        );
+        await loadComposition();
+      } catch (err) {
+        console.error('Failed to toggle bypass:', err);
+      }
+    }
+
+    async function toggleLayerSolo(layerIndex) {
+      try {
+        const layer = composition.layers[layerIndex - 1];
+        await fetch(
+          `${API_BASE}/composition/layers/${layerIndex}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              solo: { value: !layer.solo.value },
+            }),
+          }
+        );
+        await loadComposition();
+      } catch (err) {
+        console.error('Failed to toggle solo:', err);
+      }
+    }
+
+    async function updateLayerOpacity(layerIndex, value) {
+      try {
+        await fetch(
+          `${API_BASE}/composition/layers/${layerIndex}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              video: { opacity: { value: value / 100 } },
+            }),
+          }
+        );
+      } catch (err) {
+        console.error('Failed to update opacity:', err);
+      }
+    }
+
+    async function updateLayerVolume(layerIndex, value) {
+      try {
+        await fetch(
+          `${API_BASE}/composition/layers/${layerIndex}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ master: { value: value / 100 } }),
+          }
+        );
+      } catch (err) {
+        console.error('Failed to update volume:', err);
+      }
+    }
+
+    async function selectLayer(layerIndex) {
+      selectedLayer = layerIndex;
+      document.querySelectorAll('.layer-item').forEach((c) =>
+        c.id === `layer-${layerIndex}` ? c.classList.add('selected') : c.classList.remove('selected')
+      );
+      await loadLayerDetails(layerIndex);
+    }
+
+    async function loadLayerDetails(layerIndex) {
+      const layerDetails = document.getElementById('layerDetails');
+      const layerInfo = document.getElementById('layerInfo');
+      layerDetails.style.display = 'block';
+      layerInfo.innerHTML = '';
+
+      try {
+        const resLayer = await fetch(`${API_BASE}/composition/layers/${layerIndex}`);
+        if (resLayer.ok) {
+          const layerData = await resLayer.json();
+          
+          // Create sections for different parameter groups
+          const sections = {
+            'Layer Parameters': {},
+            'Dashboard': layerData.dashboard || {},
+            'Transition': layerData.transition || {},
+            'Video': layerData.video || {},
+            'Audio': layerData.audio || {}
+          };
+
+          // Extract main layer parameters
+          Object.entries(layerData).forEach(([key, value]) => {
+            if (value && typeof value === 'object' && value.value !== undefined && 
+                !['dashboard', 'transition', 'video', 'audio', 'clips'].includes(key)) {
+              sections['Layer Parameters'][key] = value;
+            }
+          });
+
+          // Render each section
+          Object.entries(sections).forEach(([sectionName, params]) => {
+            if (params && Object.keys(params).length > 0) {
+              const section = createParameterSection(sectionName, params, 
+                (paramName, value) => updateLayerParameter(layerIndex, paramName, value));
+              layerInfo.appendChild(section);
+            }
+          });
+
+          // Add effects sections
+          if (layerData.video && layerData.video.effects && layerData.video.effects.length > 0) {
+            const effectsSection = document.createElement('div');
+            effectsSection.className = 'param-section';
+            effectsSection.innerHTML = '<h4>Video Effects</h4>';
+            
+            layerData.video.effects.forEach((effect, idx) => {
+              const effectEl = createEffectElement(effect, idx, 'video', 
+                () => removeLayerEffect(layerIndex, 'video', idx));
+              effectsSection.appendChild(effectEl);
+            });
+            
+            layerInfo.appendChild(effectsSection);
+          }
+
+          // Available effects
+          const listsSection = document.createElement('div');
+          listsSection.className = 'param-section';
+          listsSection.innerHTML = `
+            <h4>Available Effects</h4>
+            <div id="layerAvailableEffects" class="list-scroll"></div>
+          `;
+          layerInfo.appendChild(listsSection);
+
+          await loadLayerAvailableEffects(layerIndex);
+        }
+      } catch (err) {
+        console.error('Failed to load layer details:', err);
+      }
+    }
+
+    async function updateLayerParameter(layerIndex, paramPath, value) {
+      const updateBody = {};
+      const pathParts = paramPath.split('.');
+      let current = updateBody;
+      
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        current[pathParts[i]] = {};
+        current = current[pathParts[i]];
+      }
+      current[pathParts[pathParts.length - 1]] = { value: value };
+
+      try {
+        await fetch(
+          `${API_BASE}/composition/layers/${layerIndex}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateBody),
+          }
+        );
+      } catch (err) {
+        console.error(`Failed to update layer param ${paramPath}:`, err);
+      }
+    }
+
+    async function loadLayerAvailableEffects(layerIndex) {
+      const container = document.getElementById('layerAvailableEffects');
+      container.innerHTML = '';
+      try {
+        const res = await fetch(`${API_BASE}/effects`);
+        if (!res.ok) return;
+        
+        const data = await res.json();
+        const effects = Array.isArray(data.video) ? data.video : [];
+        
+        effects.forEach((eff) => {
+          const item = document.createElement('div');
+          item.className = 'list-item';
+          item.textContent = eff.name || eff.idstring;
+          item.addEventListener('click', async () => {
+            // Determine which identifier to use
+            let effectIdentifier;
+            
+            // If idstring looks like a UUID (contains dashes), use the name
+            if (eff.idstring && eff.idstring.includes('-')) {
+              effectIdentifier = eff.name;
+            } else {
+              // Otherwise prefer idstring over name
+              effectIdentifier = eff.idstring || eff.name;
+            }
+            
+            await addEffectToLayer(layerIndex, effectIdentifier);
+            await loadComposition();
+            await loadLayerDetails(layerIndex);
+          });
+          container.appendChild(item);
+          
+          // Add presets if available
+          if (eff.presets && eff.presets.length > 0) {
+            eff.presets.forEach((preset) => {
+              const presetItem = document.createElement('div');
+              presetItem.className = 'list-item';
+              presetItem.textContent = `  → ${preset.name}`;
+              presetItem.style.paddingLeft = '20px';
+              presetItem.style.fontSize = '11px';
+              presetItem.style.color = '#aaa';
+              presetItem.addEventListener('click', async () => {
+                // Determine which identifier to use for the base effect
+                let effectIdentifier;
+                if (eff.idstring && eff.idstring.includes('-')) {
+                  effectIdentifier = eff.name;
+                } else {
+                  effectIdentifier = eff.idstring || eff.name;
+                }
+                
+                // Try using preset ID first, fall back to name
+                const presetIdentifier = preset.id || preset.name;
+                const effectWithPreset = `${effectIdentifier}/${presetIdentifier}`;
+                await addEffectToLayer(layerIndex, effectWithPreset);
+                await loadComposition();
+                await loadLayerDetails(layerIndex);
+              });
+              container.appendChild(presetItem);
+            });
+          }
+        });
+      } catch (err) {
+        console.error('Failed to load available effects:', err);
+      }
+    }
+
+    async function addEffectToLayer(layerIndex, effectId) {
+      try {
+        const effectURI = `effect:///video/${effectId}`;
+        const response = await fetch(
+          `${API_BASE}/composition/layers/${layerIndex}/effects/video/add`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: effectURI,
+          }
+        );
+        
+        if (!response.ok) {
+          // Try to get error message from response body
+          let errorMessage = '';
+          try {
+            const errorText = await response.text();
+            if (errorText) {
+              errorMessage = `\nServer message: ${errorText}`;
+            }
+          } catch (e) {
+            // Ignore if can't read response body
+          }
+          
+          if (response.status === 412) {
+            console.error('Cannot add effect: Composition may be locked' + errorMessage);
+            alert('Cannot add effect: Make sure the composition is not locked and try again' + errorMessage);
+          } else {
+            console.error(`Failed to add effect: ${response.status} ${response.statusText}` + errorMessage);
+            alert(`Failed to add effect: ${response.status} ${response.statusText}` + errorMessage);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to add effect to layer:', err);
+      }
+    }
+
+    async function removeLayerEffect(layerIndex, effectType, effectIndex) {
+      try {
+        await fetch(
+          `${API_BASE}/composition/layers/${layerIndex}/effects/${effectType}/${effectIndex + 1}`,
+          {
+            method: 'DELETE'
+          }
+        );
+        await loadLayerDetails(layerIndex);
+      } catch (err) {
+        console.error('Failed to remove effect:', err);
+      }
+    }
+
+    // ==================== COLUMNS TAB ====================
+    function loadColumns() {
+      const columnGrid = document.getElementById('columnGrid');
+      columnGrid.innerHTML = '';
+      composition.columns.forEach((columnObj, idx) => {
+        const btn = createColumnElement(columnObj, idx + 1);
+        columnGrid.appendChild(btn);
+      });
+    }
+
+    function createColumnElement(columnObj, index) {
+      const button = document.createElement('button');
+      button.className = 'column-btn';
+      
+      if (columnObj.connected.value === 'Connected') {
+        button.classList.add('connected');
+      }
+      
+      const numberSpan = document.createElement('span');
+      numberSpan.className = 'column-number';
+      numberSpan.textContent = index;
+      
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'column-name';
+      nameSpan.textContent = columnObj.name?.value || '';
+      
+      button.appendChild(numberSpan);
+      if (nameSpan.textContent) {
+        button.appendChild(nameSpan);
+      }
+      
+      button.addEventListener('click', () => triggerColumn(index));
+      return button;
+    }
+
+    async function triggerColumn(colIndex) {
+      try {
+        await fetch(`${API_BASE}/composition/columns/${colIndex}/connect`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        setTimeout(() => loadColumns(), 100);
+      } catch (err) {
+        console.error('Failed to trigger column:', err);
+      }
+    }
+
+    // ==================== COMPOSITION TAB ====================
+    function updateCompositionControls() {
+      if (!composition) return;
+
+      const compositionInfo = document.getElementById('compositionInfo');
+      compositionInfo.innerHTML = '';
+
+      // Create sections for different parameter groups
+      const sections = {
+        'Master Controls': {
+          master: composition.master,
+          speed: composition.speed
+        },
+        'Crossfader': composition.crossfader ? {
+          phase: composition.crossfader.phase,
+          behaviour: composition.crossfader.behaviour,
+          curve: composition.crossfader.curve
+        } : {},
+        'Composition Parameters': {},
+        'Dashboard': composition.dashboard || {},
+        'Video': composition.video || {},
+        'Audio': composition.audio || {},
+        'Tempo Controller': composition.tempo_controller || {}
+      };
+
+      // Extract main composition parameters
+      Object.entries(composition).forEach(([key, value]) => {
+        if (value && typeof value === 'object' && value.value !== undefined && 
+            !['master', 'speed', 'crossfader', 'dashboard', 'video', 'audio', 'tempo_controller', 'decks', 'layers', 'columns', 'layergroups'].includes(key)) {
+          sections['Composition Parameters'][key] = value;
+        }
+      });
+
+      // Render each section
+      Object.entries(sections).forEach(([sectionName, params]) => {
+        if (params && Object.keys(params).length > 0) {
+          const section = createParameterSection(sectionName, params, 
+            (paramName, value) => updateCompositionParameter(paramName, value));
+          compositionInfo.appendChild(section);
+        }
+      });
+
+      // Add effects sections
+      if (composition.video && composition.video.effects && composition.video.effects.length > 0) {
+        const effectsSection = document.createElement('div');
+        effectsSection.className = 'param-section';
+        effectsSection.innerHTML = '<h4>Video Effects</h4>';
+        
+        composition.video.effects.forEach((effect, idx) => {
+          const effectEl = createEffectElement(effect, idx, 'video', 
+            () => removeCompositionEffect('video', idx));
+          effectsSection.appendChild(effectEl);
+        });
+        
+        compositionInfo.appendChild(effectsSection);
+      }
+
+      // Available effects
+      const listsSection = document.createElement('div');
+      listsSection.className = 'param-section';
+      listsSection.innerHTML = `
+        <h4>Available Effects</h4>
+        <div id="compositionAvailableEffects" class="list-scroll"></div>
+      `;
+      compositionInfo.appendChild(listsSection);
+
+      loadCompositionAvailableEffects();
+    }
+
+    async function updateCompositionParameter(paramPath, value) {
+      const updateBody = {};
+      const pathParts = paramPath.split('.');
+      let current = updateBody;
+      
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        current[pathParts[i]] = {};
+        current = current[pathParts[i]];
+      }
+      current[pathParts[pathParts.length - 1]] = { value: value };
+
+      try {
+        await fetch(`${API_BASE}/composition`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updateBody),
+        });
+      } catch (err) {
+        console.error(`Failed to update composition param ${paramPath}:`, err);
+      }
+    }
+
+    async function loadCompositionAvailableEffects() {
+      const container = document.getElementById('compositionAvailableEffects');
+      container.innerHTML = '';
+      try {
+        const res = await fetch(`${API_BASE}/effects`);
+        if (!res.ok) return;
+        
+        const data = await res.json();
+        const effects = Array.isArray(data.video) ? data.video : [];
+        
+        effects.forEach((eff) => {
+          const item = document.createElement('div');
+          item.className = 'list-item';
+          item.textContent = eff.name || eff.idstring;
+          item.addEventListener('click', async () => {
+            // Determine which identifier to use
+            let effectIdentifier;
+            
+            // If idstring looks like a UUID (contains dashes), use the name
+            if (eff.idstring && eff.idstring.includes('-')) {
+              effectIdentifier = eff.name;
+            } else {
+              // Otherwise prefer idstring over name
+              effectIdentifier = eff.idstring || eff.name;
+            }
+            
+            await addEffectToComposition(effectIdentifier);
+            await loadComposition();
+            updateCompositionControls();
+          });
+          container.appendChild(item);
+          
+          // Add presets if available
+          if (eff.presets && eff.presets.length > 0) {
+            eff.presets.forEach((preset) => {
+              const presetItem = document.createElement('div');
+              presetItem.className = 'list-item';
+              presetItem.textContent = `  → ${preset.name}`;
+              presetItem.style.paddingLeft = '20px';
+              presetItem.style.fontSize = '11px';
+              presetItem.style.color = '#aaa';
+              presetItem.addEventListener('click', async () => {
+                // Determine which identifier to use for the base effect
+                let effectIdentifier;
+                if (eff.idstring && eff.idstring.includes('-')) {
+                  effectIdentifier = eff.name;
+                } else {
+                  effectIdentifier = eff.idstring || eff.name;
+                }
+                
+                // Try using preset ID first, fall back to name
+                const presetIdentifier = preset.id || preset.name;
+                const effectWithPreset = `${effectIdentifier}/${presetIdentifier}`;
+                await addEffectToComposition(effectWithPreset);
+                await loadComposition();
+                updateCompositionControls();
+              });
+              container.appendChild(presetItem);
+            });
+          }
+        });
+      } catch (err) {
+        console.error('Failed to load available effects:', err);
+      }
+    }
+
+    async function addEffectToComposition(effectId) {
+      try {
+        const effectURI = `effect:///video/${effectId}`;
+        const response = await fetch(
+          `${API_BASE}/composition/effects/video/add`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: effectURI,
+          }
+        );
+        
+        if (!response.ok) {
+          // Try to get error message from response body
+          let errorMessage = '';
+          try {
+            const errorText = await response.text();
+            if (errorText) {
+              errorMessage = `\nServer message: ${errorText}`;
+            }
+          } catch (e) {
+            // Ignore if can't read response body
+          }
+          
+          if (response.status === 412) {
+            console.error('Cannot add effect: Composition may be locked' + errorMessage);
+            alert('Cannot add effect: Make sure the composition is not locked and try again' + errorMessage);
+          } else {
+            console.error(`Failed to add effect: ${response.status} ${response.statusText}` + errorMessage);
+            alert(`Failed to add effect: ${response.status} ${response.statusText}` + errorMessage);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to add effect to composition:', err);
+      }
+    }
+
+    async function removeCompositionEffect(effectType, effectIndex) {
+      try {
+        await fetch(
+          `${API_BASE}/composition/effects/${effectType}/${effectIndex + 1}`,
+          {
+            method: 'DELETE'
+          }
+        );
+        await loadComposition();
+        updateCompositionControls();
+      } catch (err) {
+        console.error('Failed to remove effect:', err);
+      }
+    }
+
+    // ==================== HELPER FUNCTIONS ====================
+    function createParameterSection(title, params, updateCallback) {
+      const section = document.createElement('div');
+      section.className = 'param-section';
+      section.innerHTML = `<h4>${title}</h4>`;
+      
+      const paramGrid = document.createElement('div');
+      paramGrid.className = 'param-grid';
+      
+      renderParameters(params, paramGrid, updateCallback);
+      section.appendChild(paramGrid);
+      
+      return section;
+    }
+
+    function renderParameters(params, container, updateCallback, prefix = '') {
+      Object.entries(params).forEach(([key, param]) => {
+        if (!param || typeof param !== 'object') return;
+        
+        const fullPath = prefix ? `${prefix}.${key}` : key;
+        
+        if (param.value !== undefined) {
+          // It's a parameter
+          const paramEl = createParameterElement(key, param, fullPath, updateCallback);
+          if (paramEl) container.appendChild(paramEl);
+        } else if (param.valuetype === undefined) {
+          // It's a nested object
+          renderParameters(param, container, updateCallback, fullPath);
+        }
+      });
+    }
+
+    function createParameterElement(name, param, fullPath, updateCallback) {
+      if (!param || param.value === undefined) return null;
+      
+      const item = document.createElement('div');
+      item.className = 'param-item';
+      
+      if (param.valuetype === 'ParamRange' || typeof param.value === 'number') {
+        const min = param.min ?? 0;
+        const max = param.max ?? 1;
+        const step = param.step ?? 0.01;
+        
+        item.innerHTML = `
+          <div class="param-name">
+            <span>${name}</span>
+            <span>${param.value.toFixed(2)}</span>
+          </div>
+          <input
+            type="range"
+            class="slider"
+            min="${min}"
+            max="${max}"
+            value="${param.value}"
+            step="${step}"
+          />
+        `;
+        
+        const slider = item.querySelector('.slider');
+        const label = item.querySelector('.param-name span:last-child');
+        
+        slider.oninput = async function () {
+          label.textContent = parseFloat(this.value).toFixed(2);
+          await updateCallback(fullPath, parseFloat(this.value));
+        };
+      } else if (param.valuetype === 'ParamChoice' || param.options) {
+        item.innerHTML = `
+          <div class="param-name">${name}</div>
+          <select class="param-select" style="width: 100%; padding: 5px; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px;">
+            ${param.options.map(opt => `<option value="${opt}" ${opt === param.value ? 'selected' : ''}>${opt}</option>`).join('')}
+          </select>
+        `;
+        
+        const select = item.querySelector('.param-select');
+        select.onchange = async function () {
+          await updateCallback(fullPath, this.value);
+        };
+      } else if (param.valuetype === 'ParamBoolean' || typeof param.value === 'boolean') {
+        item.innerHTML = `
+          <div class="param-name">
+            <span>${name}</span>
+            <input type="checkbox" ${param.value ? 'checked' : ''} style="width: 20px; height: 20px;">
+          </div>
+        `;
+        
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        checkbox.onchange = async function () {
+          await updateCallback(fullPath, this.checked);
+        };
+      } else if (param.valuetype === 'ParamString' || param.valuetype === 'ParamText' || typeof param.value === 'string') {
+        item.innerHTML = `
+          <div class="param-name">${name}</div>
+          <input type="text" value="${param.value}" style="width: 100%; padding: 5px; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px;">
+        `;
+        
+        const input = item.querySelector('input[type="text"]');
+        input.onchange = async function () {
+          await updateCallback(fullPath, this.value);
+        };
+      }
+      
+      return item;
+    }
+
+    function createEffectElement(effect, index, type, removeCallback) {
+      const effectDiv = document.createElement('div');
+      effectDiv.className = 'effect-item';
+      
+      effectDiv.innerHTML = `
+        <div class="effect-header">
+          <div class="effect-name">${effect.display_name || effect.name}</div>
+          <button class="btn btn-remove" data-index="${index}">Remove</button>
+        </div>
+      `;
+      
+      const removeBtn = effectDiv.querySelector('.btn-remove');
+      removeBtn.addEventListener('click', removeCallback);
+      
+      // Add effect parameters
+      if (effect.params && Object.keys(effect.params).length > 0) {
+        const paramsDiv = document.createElement('div');
+        paramsDiv.className = 'effect-params';
+        
+        renderParameters(effect.params, paramsDiv, async (paramName, value) => {
+          // Update effect parameter
+          const updateBody = { params: {} };
+          updateBody.params[paramName] = { value: value };
+          
+          try {
+            await fetch(`${API_BASE}/composition/effects/by-id/${effect.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updateBody),
+            });
+          } catch (err) {
+            console.error('Failed to update effect parameter:', err);
+          }
+        });
+        
+        effectDiv.appendChild(paramsDiv);
+      }
+      
+      return effectDiv;
+    }
+
+    // ==================== GENERAL UTILITIES ====================
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`).classList.add('active');
+      document.querySelectorAll('.tab-content').forEach((content) => {
+        content.classList.remove('active');
+      });
+      document.getElementById(`${tabName}-tab`).classList.add('active');
+      
+      if (tabName === 'layers') loadLayers();
+      else if (tabName === 'columns') loadColumns();
+      else if (tabName === 'composition') updateCompositionControls();
+    }
+
+    function refreshData() {
+      // Only refresh if we're connected
+      const status = document.getElementById('connectionStatus');
+      if (!status.classList.contains('connected')) return;
+      
+      if (!document.querySelector('.slider:active')) {
+        if (currentLayer && !selectedClip) loadClips();
+        loadColumns();
+      }
+    }
+
+    window.addEventListener('error', (event) => {
+      console.error('Global error:', event.error);
+    });
+    
+    window.addEventListener('offline', () => {
+      const status = document.getElementById('connectionStatus');
+      status.textContent = 'Network offline';
+      status.classList.remove('connected');
+    });
+    
+    window.addEventListener('online', () => {
+      const status = document.getElementById('connectionStatus');
+      status.textContent = 'Network online - click Connect to reconnect';
+      status.classList.remove('connected');
+    });
+
+    function showLoading(show) {
+      document.getElementById('loading').classList.toggle('active', show);
+    }
+
+    function setupEventHandlers() {
+      document.addEventListener('contextmenu', (e) => e.preventDefault());
+      
+      // Add enter key support for IP address input
+      document.getElementById('ipAddress').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          updateConnection();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
