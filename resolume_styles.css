@@ -1,0 +1,722 @@
+/* ==================== Reset & Base ==================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  background: #0a0a0a;
+  color: #ffffff;
+  overflow-x: hidden;
+  touch-action: manipulation;
+}
+
+.container {
+  max-width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==================== Header ==================== */
+.header {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  padding: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header h1 {
+  font-size: 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+
+.connection-status {
+  text-align: center;
+  font-size: 12px;
+  padding: 5px;
+  border-radius: 20px;
+  background: #333;
+  display: inline-block;
+  width: 100%;
+}
+
+.connection-status.connected {
+  background: #00ff8830;
+  color: #00ff88;
+}
+
+/* IP Configuration */
+.ip-config {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px;
+  background: #1a1a1a;
+  border-radius: 8px;
+}
+
+.ip-config label {
+  font-size: 12px;
+  color: #888;
+}
+
+.ip-config input {
+  flex: 1;
+  padding: 5px 10px;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+}
+
+.ip-config button {
+  padding: 5px 15px;
+  background: #00ff88;
+  border: none;
+  border-radius: 4px;
+  color: #000;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ip-config button:hover {
+  background: #00cc66;
+}
+
+.ip-config button:active {
+  transform: scale(0.95);
+}
+
+/* ==================== Tab Navigation ==================== */
+.tab-nav {
+  display: flex;
+  background: #1a1a1a;
+  border-bottom: 2px solid #333;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 15px 20px;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+.tab-btn.active {
+  color: #00ff88;
+  border-bottom: 3px solid #00ff88;
+}
+
+/* ==================== Tab Content ==================== */
+.tab-content {
+  display: none;
+  padding: 20px;
+  animation: fadeIn 0.3s;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================== Custom Layer Dropdown (Clips Tab) ==================== */
+.layer-selector {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.dropdown-btn {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.dropdown-btn:hover {
+  background: #222;
+  border-color: #444;
+}
+
+.dropdown-btn:focus {
+  outline: none;
+  border-color: #00ff88;
+}
+
+.dropdown-btn .chevron {
+  width: 10px;
+  height: 6px;
+  margin-left: 8px;
+  color: #888;
+  transition: transform 0.2s;
+}
+
+.dropdown-btn.open .chevron {
+  transform: rotate(-180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  margin-top: 4px;
+  z-index: 100;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.dropdown-menu .dropdown-item {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dropdown-menu .dropdown-item:hover {
+  background: rgba(0, 255, 136, 0.1);
+}
+
+.dropdown-menu .dropdown-item.selected {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+}
+
+/* ==================== Clip Grid ==================== */
+.clip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.clip {
+  position: relative;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border: 2px solid #333;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.clip.connected {
+  background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+  color: #000;
+  border-color: #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+}
+
+.clip.selected {
+  border-color: #00ff88;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+.clip-thumbnail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.3;
+}
+
+.clip .click-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 20px);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.clip-select-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(26, 26, 26, 0.9);
+  color: #fff;
+  font-size: 12px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 2;
+  border-top: 1px solid #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 20px;
+  line-height: 20px;
+}
+
+/* ==================== Clip Details Panel ==================== */
+.clip-details {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 20px;
+}
+
+.clip-details h2 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #00ff88;
+}
+
+.clip-details h3 {
+  font-size: 14px;
+  margin: 15px 0 10px 0;
+  color: #00ccff;
+}
+
+/* ==================== Parameter Sections ==================== */
+.param-section {
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #0e0e0e;
+  border-radius: 8px;
+  border: 1px solid #222;
+}
+
+.param-section p {
+  margin: 10px 0;
+  line-height: 1.4;
+}
+
+.warning-message {
+  background: rgba(255, 170, 0, 0.1);
+  border: 1px solid #ffaa00;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.warning-message h4 {
+  color: #ffaa00;
+  margin-bottom: 5px;
+}
+
+.warning-message p {
+  font-size: 12px;
+  color: #ccc;
+  margin: 0;
+}
+
+/* Clip Parameters */
+.param-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+.param-item {
+  background: #0e0e0e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.param-name {
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #888;
+  display: flex;
+  justify-content: space-between;
+}
+
+.slider-container {
+  margin: 10px 0;
+}
+
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #ccc;
+  margin-bottom: 5px;
+}
+
+.slider {
+  width: 100%;
+  height: 40px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #333;
+  border-radius: 20px;
+  outline: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #00ff88;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #00ff88;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+/* Effects List */
+.effect-item {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.effect-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.effect-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #00ff88;
+}
+
+.effect-params {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #333;
+}
+
+/* Scrollable List for Effects & Sources */
+.list-scroll {
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #0e0e0e;
+}
+
+.list-item {
+  padding: 8px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #fff;
+  cursor: pointer;
+  background: none;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item:hover {
+  background: rgba(0, 255, 136, 0.1);
+  color: #fff;
+}
+
+/* ==================== Layer List (Layers Tab) ==================== */
+.layer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.layer-item {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 15px;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.layer-item.selected {
+  border-color: #00ff88;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+}
+
+.layer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.layer-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.layer-controls {
+  display: flex;
+  gap: 10px;
+}
+
+/* ==================== Buttons ==================== */
+.btn {
+  padding: 8px 16px;
+  background: #333;
+  border: none;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn.active {
+  background: #00ff88;
+  color: #000;
+}
+
+.btn-bypass {
+  background: #ff4444;
+}
+
+.btn-bypass.active {
+  background: #ff6666;
+}
+
+.btn-solo {
+  background: #ffaa00;
+}
+
+.btn-solo.active {
+  background: #ffcc33;
+}
+
+.btn-remove {
+  background: #ff4444;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+/* ==================== Column Controls ==================== */
+.column-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.column-btn {
+  aspect-ratio: 1/2;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border: 2px solid #444;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.column-btn span.column-number {
+  font-size: 32px;
+  margin-bottom: 5px;
+}
+
+.column-btn span.column-name {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.column-btn:active {
+  transform: scale(0.95);
+}
+
+.column-btn.connected {
+  background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+  color: #000;
+  border-color: #00ff88;
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+}
+
+/* ==================== Composition Controls ==================== */
+.composition-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.control-group {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.control-group h3 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #00ff88;
+}
+
+/* ==================== Loading Overlay ==================== */
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  display: none;
+}
+
+.loading.active {
+  display: flex;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid #333;
+  border-top-color: #00ff88;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================== Help Text ==================== */
+.help-text {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-size: 11px;
+  color: #666;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid #333;
+}
+
+/* ==================== Form Elements ==================== */
+.param-select {
+  width: 100%;
+  padding: 5px;
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+}
+
+input[type="text"], input[type="checkbox"] {
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 5px;
+}
+
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .clip-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .ip-config {
+    flex-wrap: wrap;
+  }
+  
+  .ip-config label {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+  
+  .ip-config input {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .ip-config button {
+    flex: 0 0 auto;
+  }
+}
